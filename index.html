@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ギフトまんチャレンジ</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="icon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon/android-chrome-512x512.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+            background: #0a0a0a;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        /* PC表示時のみpadding */
+        @media (min-width: 481px) {
+            body {
+                padding: 20px 0;
+            }
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            max-height: 100vh;
+            background: #2c3e50;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+            margin: auto;
+            aspect-ratio: 9 / 16;
+        }
+
+        /* 共通スタイル */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* ポータル画面 */
+        #portal-screen {
+            background: #00bfff;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .game-title {
+            font-size: 36px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .game-subtitle {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 30px;
+            text-align: center;
+            opacity: 0.9;
+        }
+
+        .portal-buttons {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .portal-button {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+            background: #ffffff;
+            color: #00bfff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .portal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .portal-button.primary {
+            background: #6778ff;
+            color: white;
+            font-size: 24px;
+            padding: 22px;
+        }
+
+        .version-display {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            color: white;
+            font-size: 12px;
+            opacity: 0.6;
+        }
+
+        /* ステージ選択＆配信者変更画面 */
+        #stage-select-screen {
+            background: #2c3e50;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .screen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .back-to-portal {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .back-to-portal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .screen-title {
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* 配信者セクション */
+        .streamer-section {
+            background: #34495e;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .section-label {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .current-streamer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .streamer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #00bfff;
+        }
+
+        .streamer-avatar.female {
+            background: #6778ff;
+        }
+
+        .streamer-avatar.character3 {
+            background: #ff69b4;
+        }
+
+        .streamer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .streamer-info {
+            flex: 1;
+        }
+
+        .streamer-name {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .change-streamer-btn {
+            background: rgba(0, 191, 255, 0.3);
+            border: 2px solid #00bfff;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .change-streamer-btn:hover {
+            background: rgba(0, 191, 255, 0.5);
+        }
+
+        /* ステージリスト */
+        .stages-section {
+            background: #34495e;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        #stage-list {
+            margin-top: 15px;
+        }
+
+        .stage-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .stage-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00bfff;
+            transform: translateX(5px);
+        }
+
+        .stage-item.cleared {
+            background: rgba(0, 191, 255, 0.2);
+            border-color: #00bfff;
+        }
+
+        .stage-item.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .stage-item.locked:hover {
+            transform: none;
+            border-color: transparent;
+        }
+
+        .stage-icon {
+            font-size: 36px;
+            margin-right: 12px;
+        }
+
+        .stage-info {
+            flex: 1;
+        }
+
+        .stage-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stage-condition {
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .stage-status {
+            color: #ffd700;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* キャラクター選択画面 */
+        #character-select-screen {
+            background: rgba(0, 0, 0, 0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #character-select-screen h2 {
+            color: #fff;
+            font-size: 32px;
+            margin-bottom: 50px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .character-options {
+            display: flex;
+            gap: 40px;
+        }
+
+        .character-option {
+            cursor: pointer;
+            transition: transform 0.3s;
+            text-align: center;
+        }
+
+        .character-option:hover {
+            transform: scale(1.1);
+        }
+
+        .character-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #fff;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            overflow: hidden;
+            background: #00bfff;
+        }
+
+        .character-box.female {
+            background: #6778ff;
+        }
+
+        .character-box.character3 {
+            background: #ff69b4;
+        }
+
+        .character-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .character-option:hover .character-box {
+            box-shadow: 0 0 30px rgba(255,255,255,0.5);
+        }
+
+        .character-name {
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* ステージ確認ウィンドウ */
+        #stage-confirm-screen {
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+
+        .confirm-overlay {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .confirm-window {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .confirm-boss-icon {
+            font-size: 80px;
+            margin-bottom: 15px;
+        }
+
+        .confirm-boss-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00bfff;
+            margin-bottom: 15px;
+        }
+
+        .confirm-boss-quote {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .confirm-divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, #00bfff, transparent);
+            margin: 20px 0;
+        }
+
+        .confirm-condition {
+            margin-bottom: 20px;
+        }
+
+        .confirm-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .confirm-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .confirm-difficulty {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-tag {
+            background: rgba(103, 120, 255, 0.1);
+            border: 2px solid #6778ff;
+            color: #6778ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .confirm-start-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            background: #00bfff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .confirm-start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
+        }
+
+        .confirm-back-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: transparent;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .confirm-back-btn:hover {
+            color: #333;
+        }
+
+        /* 残りギフト表示 */
+        #remaining-gifts-display {
+            position: absolute;
+            top: 70px; /* ヘッダーの下 */
+            left: 0;
+            right: 0;
+            padding: 8px 0 8px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            z-index: 11;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        #remaining-gifts-icons {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .gift-icon {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            backdrop-filter: blur(3px);
+            transition: all 0.3s;
+        }
+
+        .gift-icon.used {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        /* ゲーム画面 */
+        #game-screen {
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ヘッダー */
+        #header {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 15px;
+            color: white;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .boss-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .boss-icon {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+
+        .boss-name {
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .stage-number {
+            font-size: 12px;
+            color: #ffd700;
+        }
+
+        .boss-condition {
+            font-size: 12px;
+            color: #ccc;
+            margin-left: 32px;
+        }
+
+        /* メインエリア - アバター全面表示 */
+        #main-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 0;
+        }
+
+        #streamer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 0;
+            margin: 0;
+            background: #00bfff;
+            z-index: 1;
+        }
+
+        #streamer.female {
+            background: #6778ff;
+        }
+
+        #streamer.character3 {
+            background: #ff69b4;
+        }
+
+        #streamer img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #gift {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            opacity: 0;
+            pointer-events: none;
+            animation: none;
+            z-index: 5;
+        }
+
+        #gift img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
+
+        @keyframes popup {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            10% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            20% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        .gift-active {
+            animation: popup 1s ease-out;
+        }
+
+        /* シャッターボタン - モノクロ＋透過 */
+        #shutter-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            overflow: hidden;
+            z-index: 15;
+            position: relative;
+            margin-bottom: 200px;
+            backdrop-filter: blur(5px);
+        }
+
+        #shutter-button img {
+            width: 50%;
+            height: 50%;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        #shutter-button:active {
+            transform: scale(0.9);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* スコア表示 */
+        #score-display {
+            position: absolute;
+            top: 130px;
+            right: 15px;
+            color: white;
+            text-align: right;
+            font-size: 13px;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 12px;
+            border-radius: 8px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .score-item {
+            margin: 4px 0;
+        }
+
+        .score-label {
+            color: #ddd;
+            font-size: 11px;
+        }
+
+        .score-value {
+            font-weight: bold;
+            font-size: 16px;
+            color: #ffd700;
+        }
+
+        .quit-game-btn {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: rgba(255, 59, 59, 0.8);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .quit-game-btn:hover {
+            background: rgba(255, 59, 59, 1);
+            transform: translateY(-1px);
+        }
+
+        .quit-game-btn:active {
+            transform: translateY(0);
+        }
+
+        #judgment {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        #judgment-img {
+            width: 250px;
+            height: auto;
+            display: none;
+        }
+
+        #judgment-text {
+            font-size: 48px;
+            font-weight: bold;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: 3px solid #ff6b6b;
+            color: #ff6b6b;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .judgment-perfect #judgment-img,
+        .judgment-good #judgment-img {
+            display: block;
+        }
+
+        .judgment-miss #judgment-text,
+        .judgment-hazure #judgment-text {
+            display: block;
+        }
+
+        .judgment-perfect {
+            animation: judgment-anim 1s ease-out;
+        }
+
+        .judgment-good {
+            animation: judgment-anim 1s ease-out;
+        }
+
+        .judgment-miss {
+            animation: judgment-anim 1s ease-out;
+        }
+
+        .judgment-hazure {
+            animation: judgment-anim 1s ease-out;
+        }
+
+        @keyframes judgment-anim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* コメントエリア - 半透明白背景 */
+        #comment-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 15px;
+            overflow: hidden;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        #comments {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 15px 15px;
+        }
+
+        .comment {
+            color: #1a1a1a;
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: comment-in 0.3s ease-out forwards;
+            font-weight: 500;
+        }
+
+        @keyframes comment-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* クリアオーバーレイ */
+        #clear-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .clear-message {
+            font-size: 50px;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            animation: clear-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes clear-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .block-message {
+            font-size: 35px;
+            color: #03ffff;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px 30px;
+            background: rgba(3, 255, 255, 0.2);
+            border: 3px solid #03ffff;
+            border-radius: 15px;
+        }
+
+        .next-button {
+            margin-top: 10px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #00bfff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .next-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5);
+        }
+
+        .next-button.secondary {
+            background: #6778ff;
+        }
+
+        #gameover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .gameover-message {
+            font-size: 50px;
+            color: #6778ff;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .gameover-subtitle {
+            font-size: 30px;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+
+        #game-complete {
+            background: #00bfff;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .complete-title {
+            font-size: 45px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .complete-subtitle {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+
+        .restart-button {
+            padding: 20px 50px;
+            font-size: 24px;
+            background: white;
+            color: #00bfff;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .restart-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255,255,255,0.8);
+        }
+
+        /* 情報画面の共通スタイル */
+        .info-screen {
+            padding: 30px 20px;
+            overflow-y: auto;
+        }
+
+        .info-content {
+            color: #fff;
+            line-height: 1.8;
+        }
+
+        .info-content h3 {
+            font-size: 24px;
+            margin: 25px 0 15px;
+            color: #03ffff;
+        }
+
+        .info-content p {
+            margin-bottom: 15px;
+        }
+
+        .news-date {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 10px !important;
+        }
+
+        .howto-image-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .howto-image {
+            max-width: 200px;
+            height: auto;
+            margin: 10px 0;
+        }
+
+        .howto-caption {
+            font-size: 14px;
+            color: #03ffff;
+            margin-top: 5px;
+        }
+
+        /* スマホ表示最適化 */
+        @media (max-width: 480px) {
+            #game-container {
+                max-width: 100%;
+                aspect-ratio: auto;
+                height: 100vh;
+            }
+
+            .comment {
+                font-size: 12px;
+                padding: 6px 10px;
+                margin: 4px 0;
+            }
+
+            .game-title {
+                font-size: 28px;
+            }
+
+            .game-subtitle {
+                font-size: 12px;
+            }
+
+            .portal-button {
+                padding: 12px;
+                font-size: 14px;
+                margin: 8px 0;
+            }
+
+            .portal-button.primary {
+                font-size: 18px;
+                padding: 16px;
+            }
+
+            .screen-title {
+                font-size: 18px;
+            }
+
+            .boss-icon {
+                font-size: 20px;
+                margin-right: 6px;
+            }
+
+            .boss-name {
+                font-size: 14px;
+            }
+
+            .stage-number {
+                font-size: 10px;
+            }
+
+            .boss-condition {
+                font-size: 10px;
+                margin-left: 26px;
+            }
+
+            .score-display {
+                font-size: 11px;
+            }
+
+            .score-value {
+                font-size: 14px;
+            }
+
+            .stage-card {
+                padding: 12px;
+            }
+
+            .stage-boss-icon {
+                font-size: 32px;
+            }
+
+            .stage-boss-name {
+                font-size: 14px;
+            }
+
+            .stage-condition {
+                font-size: 11px;
+            }
+
+            .confirm-boss-icon {
+                font-size: 60px;
+            }
+
+            .confirm-boss-name {
+                font-size: 20px;
+            }
+
+            .confirm-boss-quote {
+                font-size: 12px;
+            }
+
+            .confirm-condition {
+                font-size: 12px;
+            }
+
+            .difficulty-tag {
+                font-size: 10px;
+                padding: 4px 8px;
+            }
+
+            .info-content {
+                font-size: 14px;
+            }
+
+            .info-content h3 {
+                font-size: 20px;
+            }
+
+            .quit-game-btn {
+                font-size: 11px;
+                padding: 5px 10px;
+            }
+
+            .gift-icon {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+
+            #header {
+                padding: 8px 12px;
+            }
+
+            #remaining-gifts-display {
+                top: 70px;
+                padding: 6px 0 6px 12px;
+            }
+
+            #score-display {
+                top: 120px;
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            #judgment-img {
+                width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- ポータル画面 -->
+        <div id="portal-screen" class="screen active">
+            <div class="game-title">ギフトまん<br>チャレンジ</div>
+            <div class="game-subtitle">反射神経でボスを撃破せよ！</div>
+            <div class="portal-buttons">
+                <button class="portal-button primary" onclick="startGame()">ゲーム開始</button>
+                <button class="portal-button" onclick="showScreen('story-screen')">ストーリー</button>
+                <button class="portal-button" onclick="showScreen('howto-screen')">遊び方</button>
+                <button class="portal-button" onclick="showScreen('ranking-screen')">オンラインランキング</button>
+                <button class="portal-button" onclick="showScreen('news-screen')">お知らせ</button>
+            </div>
+            <div class="version-display">beta 1.0</div>
+        </div>
+
+        <!-- ステージ選択＆配信者変更画面 -->
+        <div id="stage-select-screen" class="screen">
+            <div class="screen-header">
+                <button class="back-to-portal" onclick="showScreen('portal-screen')">戻る</button>
+                <div class="screen-title">ステージ選択</div>
+                <div style="width: 60px;"></div>
+            </div>
+
+            <div class="streamer-section">
+                <div class="section-label">配信者</div>
+                <div class="current-streamer">
+                    <div class="streamer-avatar" id="current-avatar">
+                        <img src="images/character01_1.png" alt="配信者">
+                    </div>
+                    <div class="streamer-info">
+                        <div class="streamer-name" id="current-name">Aさん</div>
+                    </div>
+                    <button class="change-streamer-btn" onclick="showScreen('character-select-screen')">変更</button>
+                </div>
+            </div>
+
+            <div class="stages-section">
+                <div class="section-label">ステージ</div>
+                <div id="stage-list"></div>
+            </div>
+        </div>
+
+        <!-- キャラクター選択画面 -->
+        <div id="character-select-screen" class="screen">
+            <h2>配信者を選ぼう</h2>
+            <div class="character-options">
+                <div class="character-option" onclick="selectCharacter('male', 'Aさん')">
+                    <div class="character-box">
+                        <img src="images/character01_1.png" alt="Aさん">
+                    </div>
+                    <div class="character-name">Aさん</div>
+                </div>
+                <div class="character-option" onclick="selectCharacter('female', 'Bさん')">
+                    <div class="character-box female">
+                        <img src="images/character02_1.png" alt="Bさん">
+                    </div>
+                    <div class="character-name">Bさん</div>
+                </div>
+                <div class="character-option" onclick="selectCharacter('character3', 'Cさん')">
+                    <div class="character-box character3">
+                        <img src="images/character03_1.png" alt="Cさん">
+                    </div>
+                    <div class="character-name">Cさん</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ステージ確認ウィンドウ -->
+        <div id="stage-confirm-screen" class="screen">
+            <div class="confirm-overlay">
+                <div class="confirm-window">
+                    <div class="confirm-boss-icon" id="confirm-boss-icon">👶</div>
+                    <div class="confirm-boss-name" id="confirm-boss-name">キッズコメント</div>
+                    <div class="confirm-boss-quote" id="confirm-boss-quote">「ねぇねぇ、聞いて聞いて～！」</div>
+                    
+                    <div class="confirm-divider"></div>
+                    
+                    <div class="confirm-condition">
+                        <div class="confirm-label">達成条件</div>
+                        <div class="confirm-value" id="confirm-condition-text">5枚中3枚成功</div>
+                    </div>
+                    
+                    <div class="confirm-difficulty" id="confirm-difficulty">
+                        <div class="difficulty-tag">出現位置ランダム</div>
+                        <div class="difficulty-tag">ハズレギフトあり</div>
+                    </div>
+                    
+                    <button class="confirm-start-btn" onclick="startGameFromConfirm()">スタート</button>
+                    <button class="confirm-back-btn" onclick="backToStageSelectFromConfirm()">戻る</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="game-screen" class="screen">
+            <div id="header">
+                <div class="boss-info">
+                    <span class="boss-icon" id="boss-icon">👶</span>
+                    <span class="boss-name" id="boss-name">キッズコメント</span>
+                    <span class="stage-number" id="stage-number">STAGE 1/14</span>
+                </div>
+                <div class="boss-condition" id="boss-condition">条件: 5枚中3枚成功</div>
+            </div>
+
+            <div id="main-area">
+                <div id="score-display">
+                    <div class="score-item">
+                        <span class="score-label">成功:</span>
+                        <span class="score-value" id="success-count">0/3</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-value" id="perfect-count">PERFECT: 0</span>
+                    </div>
+                    <div class="score-item">
+                        <span class="score-label">シャッター:</span>
+                        <span class="score-value" id="shot-count">20回</span>
+                    </div>
+                    <button class="quit-game-btn" onclick="quitGame()">ゲーム終了</button>
+                </div>
+
+                <div id="remaining-gifts-display">
+                    <div id="remaining-gifts-icons"></div>
+                </div>
+
+                <div id="streamer">
+                    <img id="streamer-image" src="images/character01_1.png" alt="配信者">
+                </div>
+
+                <div id="gift">
+                    <img src="images/gift01.png" alt="ギフト">
+                </div>
+                <div id="judgment">
+                    <img id="judgment-img" src="" alt="判定">
+                    <span id="judgment-text"></span>
+                </div>
+
+                <button id="shutter-button" onclick="takeShot()">
+                    <img src="images/shutter.png" alt="シャッター">
+                </button>
+            </div>
+
+            <div id="comment-area">
+                <div id="comments"></div>
+            </div>
+
+            <div id="clear-overlay">
+                <div class="clear-message">STAGE CLEAR!</div>
+                <div class="block-message">チャレンジ成功！</div>
+                <button class="next-button" onclick="nextStage()">次のステージへ</button>
+                <button class="next-button secondary" onclick="backToStageSelect()">ステージ一覧へ</button>
+            </div>
+
+            <div id="gameover-overlay">
+                <div class="gameover-message">GAME OVER</div>
+                <div class="gameover-subtitle">失敗...</div>
+                <button class="next-button" onclick="retryStage()">リトライ</button>
+                <button class="next-button secondary" onclick="backToStageSelect()">ステージ一覧へ</button>
+            </div>
+        </div>
+
+        <!-- ゲームクリア画面 -->
+        <div id="game-complete" class="screen">
+            <div class="complete-title">GAME COMPLETE!</div>
+            <div class="complete-subtitle">平和な配信空間を取り戻した！</div>
+            <button class="restart-button" onclick="showScreen('portal-screen')">ポータルへ戻る</button>
+        </div>
+
+        <!-- ストーリー画面 -->
+        <div id="story-screen" class="screen info-screen">
+            <div class="screen-header">
+                <button class="back-to-portal" onclick="showScreen('portal-screen')">戻る</button>
+                <div class="screen-title">ストーリー</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="info-content">
+                <p>ある日、平和だった配信空間に現れた厄介な存在たち...</p>
+                <p>キッズ、荒らし、セクハラ、迷惑自語り、そして最凶の「御気持表明粘着反転」まで。</p>
+                <p>配信者として、君は「ギフトまんチャレンジ」の技術を使って、これらの厄介者たちを撃退しなければならない！</p>
+                <p>一瞬で消えるギフトまんを完璧なタイミングで撮影し、ボスたちを撃破するのだ！</p>
+            </div>
+        </div>
+
+        <!-- 遊び方画面 -->
+        <div id="howto-screen" class="screen info-screen">
+            <div class="screen-header">
+                <button class="back-to-portal" onclick="showScreen('portal-screen')">戻る</button>
+                <div class="screen-title">遊び方</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="info-content">
+                <h3>ゲームの目的</h3>
+                <p>画面に出現する「ギフトまん」を、シャッターボタンでタイミングよく撮影して、配信者に迫るボスを撃破しよう！</p>
+                
+                <h3>操作方法</h3>
+                <p>画面下部の<strong>📷シャッターボタン</strong>をタップ（クリック）して撮影します。</p>
+                <p>ギフトまんが画面に現れたら、すかさずシャッターを押そう！</p>
+                
+                <h3>判定について</h3>
+                <p>撮影のタイミングによって、判定が変わります：</p>
+                <div class="howto-image-container">
+                    <img src="images/hantei_perfect.png" alt="PERFECT判定" class="howto-image">
+                    <p class="howto-caption"><strong>PERFECT:</strong> 最高のタイミング！</p>
+                </div>
+                <div class="howto-image-container">
+                    <img src="images/hantei_good.png" alt="NICE判定" class="howto-image">
+                    <p class="howto-caption"><strong>NICE:</strong> 成功！</p>
+                </div>
+                <p><strong>MISS:</strong> ギフトまんが消えてしまった、またはギフトがないのにシャッターを押した...</p>
+                
+                <h3>シャッター制限</h3>
+                <p>各ステージには<strong>シャッター回数の制限</strong>があります。</p>
+                <p>シャッターを押すたびにカウントされ、制限回数を使い切るとゲームオーバーです。</p>
+                <p>むやみにシャッターを押さず、ギフトまんが出現したタイミングを狙いましょう！</p>
+                <p>後半のステージほどシャッター制限が厳しくなります。</p>
+                
+                <h3>ハズレギフトに注意！</h3>
+                <p>後半のステージでは、<strong>ハズレギフト</strong>が出現します。</p>
+                <p>ハズレギフトを撮影すると「ハズレ！」と表示され、成功数にカウントされません。</p>
+                
+                <h3>残りギフト数</h3>
+                <p>画面上部に表示される <strong>🎁🎁🎁...</strong> が残りのチャンス（あたりギフト）の数です。</p>
+                <p>本物のギフトまんが出現するたびに、1つずつ減っていきます。</p>
+                <p>※ハズレギフトでは減りません</p>
+                
+                <h3>ステージクリア条件</h3>
+                <p>各ステージには、<strong>成功数</strong>と<strong>PERFECT回数</strong>の条件があります。</p>
+                <p>ステージ確認画面で条件を確認してからゲームを始めましょう。</p>
+                <p>後半のステージほど条件が厳しくなります！</p>
+                
+                <h3>表情に注目！</h3>
+                <p>配信者の表情が変化します：</p>
+                <p><strong>通常顔：</strong> まだ余裕がある</p>
+                <p><strong>困り顔：</strong> もうミスできない！</p>
+                <p><strong>得意顔：</strong> あと1回で成功 or クリア達成</p>
+            </div>
+        </div>
+
+        <!-- ランキング画面 -->
+        <div id="ranking-screen" class="screen info-screen">
+            <div class="screen-header">
+                <button class="back-to-portal" onclick="showScreen('portal-screen')">戻る</button>
+                <div class="screen-title">ランキング</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="info-content">
+                <p style="text-align: center; padding: 40px 0;">準備中</p>
+                <p style="text-align: center;">オンラインランキング機能は後日実装予定です！</p>
+            </div>
+        </div>
+
+        <!-- お知らせ画面 -->
+        <div id="news-screen" class="screen info-screen">
+            <div class="screen-header">
+                <button class="back-to-portal" onclick="showScreen('portal-screen')">戻る</button>
+                <div class="screen-title">お知らせ</div>
+                <div style="width: 60px;"></div>
+            </div>
+            <div class="info-content">
+                <h3>beta 1.0 リリース</h3>
+                <p class="news-date">2026/01/14</p>
+                <p>ギフトまんチャレンジ、開発版がリリース！</p>
+                <p>全14ステージで配信者を守り抜こう！</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BOSSES = [
+            {
+                name: 'キッズコメント',
+                icon: '👶',
+                quote: 'ねぇねぇ、聞いて聞いて～！',
+                displayTime: 600,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 2,
+                requiredPerfect: 0,
+                maxShots: 20,
+                hasDecoy: false,
+                randomPosition: false,
+                comments: ['ねぇねぇ', 'あのさー', '〇〇って知ってる？', '質問いい？', 'ねぇ聞いてる？']
+            },
+            {
+                name: '荒しコメント',
+                icon: '😈',
+                quote: 'つまんねーな、もっと面白いことやれよ',
+                displayTime: 550,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 3,
+                requiredPerfect: 0,
+                maxShots: 20,
+                hasDecoy: false,
+                randomPosition: false,
+                comments: ['つまんな', 'もう終わり？', '下手くそ', 'センスないね', '他の見るわ']
+            },
+            {
+                name: 'セクハラコメント',
+                icon: '😏',
+                quote: '可愛すぎ♡ 靴下見せて？',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 3,
+                requiredPerfect: 1,
+                maxShots: 15,
+                hasDecoy: false,
+                randomPosition: false,
+                comments: ['可愛すぎ', '彼氏いる？', '会いたいな', 'LINE教えて', '俺のことどう思う？']
+            },
+            {
+                name: '迷惑自語り',
+                icon: '🗣️',
+                quote: '俺さー、今日ね、マジでさー',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 3,
+                requiredPerfect: 2,
+                maxShots: 15,
+                hasDecoy: false,
+                randomPosition: false,
+                comments: ['俺さー、今日ね', '聞いてる？俺の話', '自分の話していい？', '俺も配信してて', 'ちなみに俺は']
+            },
+            {
+                name: '初見で自分宣伝',
+                icon: '📢',
+                quote: '俺も配信者です！チャンネル登録お願いします！',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 4,
+                requiredPerfect: 1,
+                maxShots: 15,
+                hasDecoy: false,
+                randomPosition: true,
+                comments: ['俺も配信者です', 'チャンネル登録お願い', '俺の配信も来て', 'コラボしませんか', '相互フォローしましょ']
+            },
+            {
+                name: '指示厨',
+                icon: '👆',
+                quote: '〇〇やって！なんでやらないの？',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 4,
+                requiredPerfect: 2,
+                maxShots: 15,
+                hasDecoy: false,
+                randomPosition: true,
+                comments: ['〇〇やって', '次これやれ', 'なんでやらないの', 'リクエスト聞いてよ', 'それ違うよ']
+            },
+            {
+                name: '裏DM連打',
+                icon: '📱',
+                quote: 'DM返信して！既読ついてるよね？',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 4,
+                requiredPerfect: 0,
+                maxShots: 12,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['DM返信して', 'なんで無視するの', '既読ついてるよね', '読んでるでしょ', 'ねぇ見て']
+            },
+            {
+                name: '行き過ぎたガチ恋',
+                icon: '💕',
+                quote: '好きです、付き合ってください！',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 4,
+                requiredPerfect: 1,
+                maxShots: 12,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['好きです付き合って', '俺だけ見て', '他の人と話さないで', '結婚しよう', '運命感じる']
+            },
+            {
+                name: '特定厨',
+                icon: '🔍',
+                quote: '〇〇駅だよね？本名知ってるよ',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 10,
+                requiredSuccess: 4,
+                requiredPerfect: 2,
+                maxShots: 12,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['〇〇駅だよね', '前に見たことある', '本名知ってるよ', '学校どこ？', '住んでる場所バレてる']
+            },
+            {
+                name: 'ユニコーン',
+                icon: '🦄',
+                quote: '男と喋るな！裏切られた！',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 8,
+                requiredSuccess: 5,
+                requiredPerfect: 2,
+                maxShots: 12,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['男と喋るな', '裏切られた', '清楚なのが良かったのに', 'もう見ない', 'ファン辞めます']
+            },
+            {
+                name: '無断転載',
+                icon: '🏴‍☠️',
+                quote: 'これ保存した、勝手に使うわ',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 8,
+                requiredSuccess: 5,
+                requiredPerfect: 2,
+                maxShots: 10,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['これ保存した', '別のサイトに上げるね', '勝手に使うわ', 'スクショ撮った', '転載禁止って書いてないし']
+            },
+            {
+                name: '御気持表明粘着反転',
+                icon: '😡',
+                quote: 'いつも応援してました、なのに裏切られた。',
+                displayTime: 500,
+                perfectThreshold: 370,
+                totalGifts: 7,
+                requiredSuccess: 5,
+                requiredPerfect: 5,
+                maxShots: 10,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['いつも応援してました', 'なのに裏切られた', '信じてたのに', '好きだったのに嫌いになった', '許さない']
+            },
+            {
+                name: '京野なち',
+                icon: '🐻',
+                quote: '開発者の本気を見せてやる',
+                displayTime: 400,
+                perfectThreshold: 370,
+                totalGifts: 5,
+                requiredSuccess: 5,
+                requiredPerfect: 5,
+                maxShots: 6,
+                hasDecoy: true,
+                randomPosition: true,
+                comments: ['ぴ', '我が名は京野！', 'と思うじゃん', '今月のクレカ支払いやばい', '好きな食べ物はもつ鍋']
+            },
+            {
+                name: '【人類到達点】瑞乃しろ',
+                icon: '🍼',
+                quote: 'しーはろだよ！',
+                displayTime: 300,
+                perfectThreshold: 250,
+                totalGifts: 5,
+                requiredSuccess: 5,
+                requiredPerfect: 5,
+                maxShots: 5,
+                hasDecoy: true,
+                decoyCount: 10,
+                randomPosition: true,
+                comments: ['ざぁーこざぁーこ', 'よわぁ', 'うるさぁい', 'バカじゃーん', 'うけるー', 'やばぁ', '接待もできないの？', 'メスガキ（24）', '平和が一番', 'そんなに会話術知ってるのになんで恋人できないの？']
+            }
+        ];
+
+        let gameState = {
+            selectedCharacter: localStorage.getItem('selectedCharacter') || null,
+            selectedName: localStorage.getItem('selectedName') || null,
+            currentStage: 0,
+            successCount: 0,
+            perfectCount: 0,
+            remainingGifts: 10,
+            realGiftShown: 0, // あたりギフトが出現した回数
+            shotCount: 0, // 使用したシャッター数
+            maxShots: 20, // シャッター制限
+            giftActive: false,
+            giftStartTime: 0,
+            giftIsDecoy: false,
+            gameRunning: false,
+            clearedStages: JSON.parse(localStorage.getItem('clearedStages') || '[]'),
+            unlockedStage: parseInt(localStorage.getItem('unlockedStage') || '0'),
+            giftTimer: null,
+            hideGiftTimer: null,
+            giftPatterns: [],
+            currentGiftIndex: 0
+        };
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function startGame() {
+            if (!gameState.selectedCharacter) {
+                showScreen('character-select-screen');
+            } else {
+                updateCurrentStreamerDisplay();
+                renderStageList();
+                showScreen('stage-select-screen');
+            }
+        }
+
+        function selectCharacter(type, name) {
+            gameState.selectedCharacter = type;
+            gameState.selectedName = name;
+            localStorage.setItem('selectedCharacter', type);
+            localStorage.setItem('selectedName', name);
+            
+            updateCurrentStreamerDisplay();
+            
+            // 初回も含めてステージ選択画面へ
+            renderStageList();
+            showScreen('stage-select-screen');
+        }
+
+        function updateCurrentStreamerDisplay() {
+            const avatar = document.getElementById('current-avatar');
+            const nameEl = document.getElementById('current-name');
+            
+            avatar.className = 'streamer-avatar'; // クラスをリセット
+            if (gameState.selectedCharacter === 'female') {
+                avatar.classList.add('female');
+            } else if (gameState.selectedCharacter === 'character3') {
+                avatar.classList.add('character3');
+            }
+            
+            let imgSrc;
+            if (gameState.selectedCharacter === 'male') {
+                imgSrc = 'images/character01_1.png';
+            } else if (gameState.selectedCharacter === 'female') {
+                imgSrc = 'images/character02_1.png';
+            } else if (gameState.selectedCharacter === 'character3') {
+                imgSrc = 'images/character03_1.png';
+            }
+            avatar.querySelector('img').src = imgSrc;
+            nameEl.textContent = gameState.selectedName;
+        }
+
+        function renderStageList() {
+            const stageList = document.getElementById('stage-list');
+            stageList.innerHTML = '';
+            
+            BOSSES.forEach((boss, index) => {
+                const stageItem = document.createElement('div');
+                stageItem.className = 'stage-item';
+                
+                const isCleared = gameState.clearedStages.includes(index);
+                const isUnlocked = index <= gameState.unlockedStage;
+                
+                if (isCleared) {
+                    stageItem.classList.add('cleared');
+                } else if (!isUnlocked) {
+                    stageItem.classList.add('locked');
+                }
+                
+                let conditionText = `${boss.totalGifts}個中${boss.requiredSuccess}個成功`;
+                if (boss.requiredPerfect > 0) {
+                    conditionText += ` (PERFECT ${boss.requiredPerfect})`;
+                }
+                
+                let statusText = '';
+                if (isCleared) {
+                    statusText = 'クリア済み';
+                } else if (isUnlocked) {
+                    statusText = '挑戦可能';
+                } else {
+                    statusText = '未開放';
+                }
+                
+                stageItem.innerHTML = `
+                    <div class="stage-icon">${boss.icon}</div>
+                    <div class="stage-info">
+                        <div class="stage-name">STAGE ${index + 1}: ${boss.name}</div>
+                        <div class="stage-condition">${conditionText}</div>
+                    </div>
+                    <div class="stage-status">${statusText}</div>
+                `;
+                
+                if (isUnlocked) {
+                    stageItem.onclick = () => {
+                        gameState.currentStage = index;
+                        showStageConfirm();
+                    };
+                }
+                
+                stageList.appendChild(stageItem);
+            });
+        }
+
+        function showStageConfirm() {
+            const boss = BOSSES[gameState.currentStage];
+            
+            // 判定表示をクリア
+            const judgment = document.getElementById('judgment');
+            judgment.style.opacity = '0';
+            judgment.className = '';
+            
+            // ボス情報を表示
+            document.getElementById('confirm-boss-icon').textContent = boss.icon;
+            document.getElementById('confirm-boss-name').textContent = boss.name;
+            document.getElementById('confirm-boss-quote').textContent = `「${boss.quote}」`;
+            
+            // 達成条件を表示
+            let conditionText = `${boss.totalGifts}個中${boss.requiredSuccess}個成功`;
+            if (boss.requiredPerfect > 0) {
+                conditionText += `<br>(PERFECT ${boss.requiredPerfect}回)`;
+            }
+            document.getElementById('confirm-condition-text').innerHTML = conditionText;
+            
+            // 難易度タグを表示
+            const difficultyDiv = document.getElementById('confirm-difficulty');
+            difficultyDiv.innerHTML = '';
+            
+            // 出現位置タグ
+            const positionTag = document.createElement('div');
+            positionTag.className = 'difficulty-tag';
+            positionTag.textContent = boss.randomPosition ? '出現位置：ランダム' : '出現位置：固定';
+            difficultyDiv.appendChild(positionTag);
+            
+            // ハズレギフトタグ
+            const decoyTag = document.createElement('div');
+            decoyTag.className = 'difficulty-tag';
+            decoyTag.textContent = boss.hasDecoy ? 'ハズレギフト：あり' : 'ハズレギフト：なし';
+            difficultyDiv.appendChild(decoyTag);
+            
+            showScreen('stage-confirm-screen');
+        }
+
+        function backToStageSelectFromConfirm() {
+            renderStageList();
+            showScreen('stage-select-screen');
+        }
+
+        function startGameFromConfirm() {
+            // ギフトパターンを生成
+            generateGiftPatterns();
+            
+            // ゲーム画面へ移行
+            showScreen('game-screen');
+            startStage();
+        }
+
+        function generateGiftPatterns() {
+            const boss = BOSSES[gameState.currentStage];
+            gameState.giftPatterns = [];
+            
+            console.log('Generating gift patterns for stage', gameState.currentStage + 1);
+            
+            // 1. あたりギフトを10個生成
+            for (let i = 0; i < boss.totalGifts; i++) {
+                const pattern = {
+                    delay: i === 0 ? 3000 : (2000 + Math.random() * 2000),
+                    isDecoy: false, // あたりギフト
+                    position: boss.randomPosition ? {
+                        x: 30 + Math.random() * 40,
+                        y: 25 + Math.random() * 30
+                    } : { x: 50, y: 40 }
+                };
+                gameState.giftPatterns.push(pattern);
+            }
+            
+            // 2. ハズレギフトを追加
+            if (boss.hasDecoy) {
+                const decoyCount = boss.decoyCount || (3 + Math.floor(Math.random() * 3)); // 指定がなければ3-5個
+                console.log('Adding', decoyCount, 'decoy gifts');
+                for (let i = 0; i < decoyCount; i++) {
+                    const pattern = {
+                        delay: 2000 + Math.random() * 2000,
+                        isDecoy: true, // ハズレギフト
+                        position: boss.randomPosition ? {
+                            x: 30 + Math.random() * 40,
+                            y: 25 + Math.random() * 30
+                        } : { x: 50, y: 40 }
+                    };
+                    gameState.giftPatterns.push(pattern);
+                }
+            }
+            
+            // 3. シャッフル（最初のギフトを除く）
+            const firstGift = gameState.giftPatterns[0];
+            const restGifts = gameState.giftPatterns.slice(1);
+            
+            // Fisher-Yatesシャッフル
+            for (let i = restGifts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [restGifts[i], restGifts[j]] = [restGifts[j], restGifts[i]];
+            }
+            
+            gameState.giftPatterns = [firstGift, ...restGifts];
+            gameState.currentGiftIndex = 0;
+            
+            const realCount = gameState.giftPatterns.filter(p => !p.isDecoy).length;
+            const decoyCountActual = gameState.giftPatterns.filter(p => p.isDecoy).length;
+            console.log('Generated patterns:', gameState.giftPatterns.length, 'total (', realCount, 'real +', decoyCountActual, 'decoy)');
+        }
+
+        function startStage() {
+            const boss = BOSSES[gameState.currentStage];
+            
+            // 既存のタイマーをクリア
+            if (gameState.giftTimer) {
+                clearTimeout(gameState.giftTimer);
+                gameState.giftTimer = null;
+            }
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+                gameState.hideGiftTimer = null;
+            }
+            
+            gameState.successCount = 0;
+            gameState.perfectCount = 0;
+            gameState.remainingGifts = boss.totalGifts;
+            gameState.realGiftShown = 0;
+            gameState.shotCount = 0;
+            gameState.maxShots = boss.maxShots;
+            gameState.giftActive = false;
+            gameState.gameRunning = true;
+            
+            document.getElementById('boss-icon').textContent = boss.icon;
+            document.getElementById('boss-name').textContent = boss.name;
+            document.getElementById('stage-number').textContent = `STAGE ${gameState.currentStage + 1}/14`;
+            
+            let conditionText = `${boss.totalGifts}個中${boss.requiredSuccess}個成功`;
+            if (boss.requiredPerfect > 0) {
+                conditionText += ` | PERFECT ${boss.requiredPerfect}回`;
+            }
+            document.getElementById('boss-condition').textContent = conditionText;
+            
+            const streamer = document.getElementById('streamer');
+            streamer.className = ''; // クラスをリセット
+            if (gameState.selectedCharacter === 'female') {
+                streamer.classList.add('female');
+            } else if (gameState.selectedCharacter === 'character3') {
+                streamer.classList.add('character3');
+            }
+            
+            initRemainingGifts();
+            updateScoreDisplay();
+            updateFace();
+            
+            // 判定表示をクリア
+            const judgment = document.getElementById('judgment');
+            judgment.style.opacity = '0';
+            judgment.className = '';
+            
+            startCommentFlow();
+            scheduleNextGift();
+        }
+
+        function updateScoreDisplay() {
+            const boss = BOSSES[gameState.currentStage];
+            document.getElementById('success-count').textContent = 
+                `${gameState.successCount}/${boss.requiredSuccess}`;
+            document.getElementById('perfect-count').textContent = 
+                `PERFECT: ${gameState.perfectCount}`;
+            const remaining = gameState.maxShots - gameState.shotCount;
+            document.getElementById('shot-count').textContent = `${remaining}回`;
+            updateRemainingGifts();
+        }
+
+        function updateRemainingGifts() {
+            const icons = document.querySelectorAll('.gift-icon');
+            const shownCount = gameState.realGiftShown; // あたりギフト出現数で減らす
+            
+            icons.forEach((icon, index) => {
+                if (index < shownCount) {
+                    icon.classList.add('used');
+                } else {
+                    icon.classList.remove('used');
+                }
+            });
+        }
+
+        function initRemainingGifts() {
+            const boss = BOSSES[gameState.currentStage];
+            const container = document.getElementById('remaining-gifts-icons');
+            container.innerHTML = '';
+            
+            // 10個（totalGifts）表示
+            for (let i = 0; i < boss.totalGifts; i++) {
+                const icon = document.createElement('div');
+                icon.className = 'gift-icon';
+                icon.textContent = '🎁';
+                container.appendChild(icon);
+            }
+        }
+
+        function updateFace() {
+            const boss = BOSSES[gameState.currentStage];
+            const streamerImg = document.getElementById('streamer-image');
+            
+            const neededSuccess = boss.requiredSuccess - gameState.successCount;
+            const neededPerfect = Math.max(0, boss.requiredPerfect - gameState.perfectCount);
+            
+            // 残りのあたりギフト数を計算
+            const totalRealGifts = gameState.giftPatterns.filter(p => !p.isDecoy).length;
+            const remainingRealGifts = totalRealGifts - gameState.realGiftShown;
+            
+            let charPrefix;
+            if (gameState.selectedCharacter === 'male') {
+                charPrefix = 'character01';
+            } else if (gameState.selectedCharacter === 'female') {
+                charPrefix = 'character02';
+            } else if (gameState.selectedCharacter === 'character3') {
+                charPrefix = 'character03';
+            }
+            
+            // 得意顔：クリア達成 OR あと1回成功すればクリア
+            if ((gameState.successCount >= boss.requiredSuccess && 
+                 gameState.perfectCount >= boss.requiredPerfect) ||
+                (neededSuccess === 1 && neededPerfect === 0)) {
+                streamerImg.src = `images/${charPrefix}_3.png`;
+            }
+            // 困り顔：もう失敗できない（ギリギリ）
+            else if (remainingRealGifts === neededSuccess || 
+                     (neededPerfect > 0 && remainingRealGifts === neededPerfect)) {
+                streamerImg.src = `images/${charPrefix}_2.png`;
+            }
+            // 通常顔：まだ余裕がある
+            else {
+                streamerImg.src = `images/${charPrefix}_1.png`;
+            }
+        }
+
+        function scheduleNextGift() {
+            if (!gameState.gameRunning) {
+                console.log('Game not running, cannot schedule gift');
+                return;
+            }
+            
+            // 既存のタイマーをクリア
+            if (gameState.giftTimer) {
+                clearTimeout(gameState.giftTimer);
+                gameState.giftTimer = null;
+            }
+            
+            // パターンが残っていない場合は終了
+            if (gameState.currentGiftIndex >= gameState.giftPatterns.length) {
+                console.log('No more gift patterns');
+                return;
+            }
+            
+            const pattern = gameState.giftPatterns[gameState.currentGiftIndex];
+            gameState.currentGiftIndex++;
+            
+            console.log('Scheduling next gift in', pattern.delay, 'ms. Pattern index:', gameState.currentGiftIndex - 1);
+            
+            gameState.giftTimer = setTimeout(() => {
+                showGift();
+            }, pattern.delay);
+        }
+
+        function showGift() {
+            if (!gameState.gameRunning) {
+                console.log('Game not running, cannot show gift');
+                return;
+            }
+            
+            const boss = BOSSES[gameState.currentStage];
+            const pattern = gameState.giftPatterns[gameState.currentGiftIndex - 1];
+            
+            if (!pattern) {
+                console.log('No pattern found for index:', gameState.currentGiftIndex - 1);
+                return;
+            }
+            
+            console.log('Showing gift:', pattern);
+            
+            gameState.giftActive = true;
+            gameState.giftStartTime = Date.now();
+            gameState.giftIsDecoy = pattern.isDecoy;
+            
+            // あたりギフトが出現したらカウントして表示更新
+            if (!pattern.isDecoy) {
+                gameState.realGiftShown++;
+                updateRemainingGifts();
+                console.log('Real gift shown, count:', gameState.realGiftShown);
+            } else {
+                console.log('Decoy gift shown, not counting');
+            }
+            
+            const gift = document.getElementById('gift');
+            const giftImg = gift.querySelector('img');
+            
+            // 画像切り替え
+            if (gameState.giftIsDecoy) {
+                giftImg.src = 'images/hazuregift01.png';
+                console.log('Showing decoy gift');
+            } else {
+                giftImg.src = 'images/gift01.png';
+                console.log('Showing real gift');
+            }
+            
+            // 位置設定
+            gift.style.left = pattern.position.x + '%';
+            gift.style.top = pattern.position.y + '%';
+            
+            gift.style.opacity = '1';
+            gift.classList.add('gift-active');
+            
+            console.log('Gift displayed at:', pattern.position);
+            
+            // 既存のタイマーをクリア
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+            }
+            
+            // 表示時間後に自動で消える
+            gameState.hideGiftTimer = setTimeout(() => {
+                if (gameState.giftActive) {
+                    console.log('Gift auto-hide after', boss.displayTime, 'ms');
+                    gameState.giftActive = false;
+                    gift.style.opacity = '0';
+                    gift.classList.remove('gift-active');
+                    
+                    scheduleNextGift();
+                }
+            }, boss.displayTime);
+        }
+
+        function takeShot() {
+            console.log('=== takeShot CALLED ===');
+            
+            if (!gameState.gameRunning) {
+                console.log('Game not running');
+                return;
+            }
+            
+            // シャッターカウント増加
+            gameState.shotCount++;
+            updateScoreDisplay();
+            
+            // シャッター制限チェック
+            if (gameState.shotCount >= gameState.maxShots) {
+                console.log('Out of shots - Game Over');
+                showJudgment('MISS');
+                updateFace();
+                setTimeout(() => {
+                    gameOver();
+                }, 500);
+                return;
+            }
+            
+            console.log('Shot taken! Gift active:', gameState.giftActive);
+            
+            // ギフトがない時はMISS
+            if (!gameState.giftActive) {
+                console.log('No gift active - MISS');
+                showJudgment('MISS');
+                updateFace();
+                return; // ギフトがない時は何もカウントしない
+            }
+            
+            const boss = BOSSES[gameState.currentStage];
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - gameState.giftStartTime;
+            
+            console.log('Elapsed time:', elapsedTime, 'ms');
+            
+            // ギフトを即座に非アクティブ化
+            gameState.giftActive = false;
+            
+            // ギフトを消すタイマーをクリア
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+                gameState.hideGiftTimer = null;
+            }
+            
+            const gift = document.getElementById('gift');
+            gift.style.opacity = '0';
+            gift.classList.remove('gift-active');
+            
+            // ハズレギフトを撮影した場合
+            if (gameState.giftIsDecoy) {
+                console.log('Decoy gift!');
+                showJudgment('ハズレ！');
+                updateFace();
+                checkGameResult();
+                return;
+            }
+            
+            // 判定: PERFECT判定はステージごとに可変
+            const perfectThreshold = boss.perfectThreshold || 370; // デフォルト370ms
+            
+            let judgment = '';
+            if (elapsedTime <= perfectThreshold) {
+                judgment = 'PERFECT';
+                gameState.successCount++;
+                gameState.perfectCount++;
+            } else if (elapsedTime <= boss.displayTime) {
+                judgment = 'NICE';
+                gameState.successCount++;
+            } else {
+                judgment = 'MISS';
+            }
+            
+            console.log('Judgment:', judgment);
+            
+            showJudgment(judgment);
+            updateScoreDisplay();
+            updateFace();
+            
+            checkGameResult();
+        }
+
+        function showJudgment(type) {
+            const judgment = document.getElementById('judgment');
+            const judgmentImg = document.getElementById('judgment-img');
+            const judgmentText = document.getElementById('judgment-text');
+            
+            // クラス名を設定
+            let className = 'judgment-';
+            
+            if (type === 'ハズレ！') {
+                className += 'hazure';
+                judgmentText.textContent = 'ハズレ！';
+            } else if (type === 'MISS') {
+                className += 'miss';
+                judgmentText.textContent = 'MISS';
+            } else if (type === 'PERFECT') {
+                className += 'perfect';
+                judgmentImg.src = 'images/hantei_perfect.png';
+            } else if (type === 'NICE') {
+                className += 'good';
+                judgmentImg.src = 'images/hantei_good.png';
+            }
+            
+            judgment.className = className;
+            judgment.style.opacity = '1';
+            
+            setTimeout(() => {
+                judgment.style.opacity = '0';
+            }, 1000);
+        }
+
+        function checkGameResult() {
+            const boss = BOSSES[gameState.currentStage];
+            
+            // クリア条件チェック
+            if (gameState.successCount >= boss.requiredSuccess && 
+                gameState.perfectCount >= boss.requiredPerfect) {
+                stageClear();
+                return;
+            }
+            
+            // クリア不可能判定
+            const neededSuccess = boss.requiredSuccess - gameState.successCount;
+            const neededPerfect = boss.requiredPerfect - gameState.perfectCount;
+            
+            // 残りあたりギフト数を計算
+            const totalRealGifts = gameState.giftPatterns.filter(p => !p.isDecoy).length;
+            const remainingRealGifts = totalRealGifts - gameState.realGiftShown;
+            
+            console.log('Check result: need', neededSuccess, 'success,', neededPerfect, 'perfect. Remaining real gifts:', remainingRealGifts);
+            
+            if (remainingRealGifts < neededSuccess || 
+                remainingRealGifts < neededPerfect) {
+                console.log('Game over: not enough real gifts remaining');
+                gameOver();
+                return;
+            }
+            
+            // 全ギフト出現済みかつ未クリア
+            if (gameState.currentGiftIndex >= gameState.giftPatterns.length) {
+                console.log('Game over: all gifts shown');
+                gameOver();
+                return;
+            }
+            
+            // まだ続行可能
+            scheduleNextGift();
+        }
+
+        function startCommentFlow() {
+            const boss = BOSSES[gameState.currentStage];
+            const comments = boss.comments;
+            
+            function addComment() {
+                if (!gameState.gameRunning) return;
+                
+                const commentText = comments[Math.floor(Math.random() * comments.length)];
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.textContent = commentText;
+                
+                const commentsContainer = document.getElementById('comments');
+                commentsContainer.appendChild(commentDiv);
+                
+                while (commentsContainer.children.length > 5) {
+                    commentsContainer.removeChild(commentsContainer.firstChild);
+                }
+                
+                const delay = Math.random() * 1500 + 800;
+                setTimeout(addComment, delay);
+            }
+            
+            addComment();
+        }
+
+        function stageClear() {
+            gameState.gameRunning = false;
+            
+            // すべてのタイマーをクリア
+            if (gameState.giftTimer) {
+                clearTimeout(gameState.giftTimer);
+                gameState.giftTimer = null;
+            }
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+                gameState.hideGiftTimer = null;
+            }
+            
+            // 判定表示をクリア
+            const judgment = document.getElementById('judgment');
+            judgment.style.opacity = '0';
+            judgment.className = '';
+            
+            if (!gameState.clearedStages.includes(gameState.currentStage)) {
+                gameState.clearedStages.push(gameState.currentStage);
+                localStorage.setItem('clearedStages', JSON.stringify(gameState.clearedStages));
+            }
+            
+            if (gameState.currentStage >= gameState.unlockedStage) {
+                gameState.unlockedStage = gameState.currentStage + 1;
+                localStorage.setItem('unlockedStage', gameState.unlockedStage.toString());
+            }
+            
+            document.getElementById('clear-overlay').style.display = 'flex';
+        }
+
+        function gameOver() {
+            gameState.gameRunning = false;
+            
+            // すべてのタイマーをクリア
+            if (gameState.giftTimer) {
+                clearTimeout(gameState.giftTimer);
+                gameState.giftTimer = null;
+            }
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+                gameState.hideGiftTimer = null;
+            }
+            
+            // 判定表示をクリア
+            const judgment = document.getElementById('judgment');
+            judgment.style.opacity = '0';
+            judgment.className = '';
+            
+            document.getElementById('gameover-overlay').style.display = 'flex';
+        }
+
+        function retryStage() {
+            document.getElementById('gameover-overlay').style.display = 'none';
+            generateGiftPatterns(); // パターンを再生成
+            startStage();
+        }
+
+        function nextStage() {
+            document.getElementById('clear-overlay').style.display = 'none';
+            gameState.currentStage++;
+            
+            if (gameState.currentStage >= BOSSES.length) {
+                showScreen('game-complete');
+            } else {
+                showStageConfirm(); // 確認ウィンドウを表示
+            }
+        }
+
+        function backToStageSelect() {
+            document.getElementById('clear-overlay').style.display = 'none';
+            document.getElementById('gameover-overlay').style.display = 'none';
+            renderStageList();
+            showScreen('stage-select-screen');
+        }
+
+        function quitGame() {
+            // ゲームを停止
+            gameState.gameRunning = false;
+            
+            // すべてのタイマーをクリア
+            if (gameState.giftTimer) {
+                clearTimeout(gameState.giftTimer);
+                gameState.giftTimer = null;
+            }
+            if (gameState.hideGiftTimer) {
+                clearTimeout(gameState.hideGiftTimer);
+                gameState.hideGiftTimer = null;
+            }
+            
+            // 判定表示をクリア
+            const judgment = document.getElementById('judgment');
+            judgment.style.opacity = '0';
+            judgment.className = '';
+            
+            // ステージ選択画面に戻る
+            renderStageList();
+            showScreen('stage-select-screen');
+        }
+
+        // 初回訪問チェック
+        function checkFirstVisit() {
+            const hasVisited = localStorage.getItem('hasVisitedGiftmanChallenge');
+            
+            if (!hasVisited) {
+                // 初回訪問の場合、遊び方を表示
+                localStorage.setItem('hasVisitedGiftmanChallenge', 'true');
+                showScreen('howto-screen');
+            }
+        }
+
+        // ページ読み込み時に初回チェック
+        window.addEventListener('DOMContentLoaded', () => {
+            checkFirstVisit();
+        });
+    </script>
+</body>
+</html>
